@@ -9,11 +9,11 @@
     body{margin:4rem auto;max-width:720px;padding:0 2rem;display:flex;flex-direction:column;min-height:80vh}
     main{flex:1;display:flex;flex-direction:column;justify-content:center;text-align:center}
     h1{font-size:3rem;margin:0}
-    .pronouns{font-size:1.5rem;color:#64748b;margin-top:0.5rem}
+    .pronouns{font-size:1.5rem;color:#64748b;margin-top:0.5rem;min-height:2rem;display:flex;align-items:center;justify-content:center}
     form{margin-top:4rem}
     input{width:100%;padding:0.75rem;border:1px solid #ccc;border-radius:8px;text-align:center;font-size:1rem}
     button{display:none}
-    .muted{color:#94a3b8;font-size:0.9rem;margin-top:1rem}
+    .muted{color:#94a3b8;font-size:0.9rem;margin-top:1rem;min-height:1.2rem}
     a{color:inherit;text-decoration:underline}
     .spinner{display:inline-block;width:1.5rem;height:1.5rem;border:3px solid #ccc;border-top-color:#0ea5a2;border-radius:50%;animation:spin 1s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
@@ -52,7 +52,12 @@
     }
 
     function setStatus(text, busy=false){
-      statusEl.innerHTML = busy ? '<span class="spinner" aria-hidden="true"></span>' : text
+      if(busy){
+        pronounsEl.innerHTML = '<span class="spinner" aria-hidden="true"></span>'
+        statusEl.textContent = ''
+      } else {
+        statusEl.textContent = text
+      }
     }
 
     function getNameFromFragment(){
