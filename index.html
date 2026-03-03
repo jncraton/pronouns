@@ -140,11 +140,17 @@
       return String(s).replace(/[&"'<>]/g, c => ({'&':'&amp;','"':'&quot;',"'":'&#39;','<':'&lt;','>':'&gt;'})[c])
     }
 
-    form.addEventListener('submit', e=>{
-      e.preventDefault()
+    input.addEventListener('input', () => {
       const val = input.value.trim()
-      if(!val) return
-      location.hash = encodeURIComponent(val)
+      if (val) {
+        location.hash = encodeURIComponent(val)
+      } else {
+        history.replaceState(null, null, ' ')
+      }
+    })
+
+    form.addEventListener('submit', e => {
+      e.preventDefault()
       trigger()
     })
 
