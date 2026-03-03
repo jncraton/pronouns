@@ -12,7 +12,7 @@ def root(page: Page):
     return page
 
 def test_page_title(root):
-    expect(root).to_have_title("Pronoun Lookup (Wikidata)")
+    expect(root).to_have_title('Pronouns')
 
 def test_lookup_ada(root: Page):
     root.locator('#nameInput').fill('Ada Lovelace')
