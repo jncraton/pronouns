@@ -151,7 +151,7 @@
     async function trigger(){
       const name = getNameFromFragment()
       if(!name){
-        setStatus('No name provided in fragment. Type a name and press Lookup or add #name to the URL')
+        setStatus('Ready. Add a name to the URL fragment or type one above')
         return
       }
       input.value = name
@@ -161,15 +161,7 @@
     window.addEventListener('hashchange', trigger)
 
     // run on load
-    (async ()=>{
-      const name = getNameFromFragment()
-      if(name){
-        input.value = name
-        await lookup(name)
-      } else {
-        setStatus('Ready. Add a name to the URL fragment or type one above')
-      }
-    })()
+    trigger()
   </script>
 </body>
 </html>
