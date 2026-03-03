@@ -15,8 +15,7 @@ def test_page_title(root):
     expect(root).to_have_title('Pronouns')
 
 def test_lookup_ada(root: Page):
-    root.locator('#nameInput').fill('Ada Lovelace')
-    root.keyboard.press('Enter')
+    root.locator('#displayName').fill('Ada Lovelace')
     expect(root.locator('#status')).to_contain_text('Lookup complete', timeout=10000)
     expect(root.locator('#displayName')).to_have_text('Ada Lovelace')
     expect(root.locator('#pronouns')).to_have_text('she/her')

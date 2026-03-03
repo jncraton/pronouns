@@ -6,14 +6,12 @@
   <title>Pronouns</title>
   <style>
     :root{font-family: system-ui, sans-serif; color-scheme: light dark}
-    body{margin:4rem auto;max-width:720px;padding:0 2rem;display:flex;flex-direction:column;min-height:80vh}
-    main{flex:1;display:flex;flex-direction:column;justify-content:center;text-align:center}
-    h1{font-size:3rem;margin:0}
-    .pronouns{font-size:1.5rem;color:#64748b;margin-top:0.5rem;min-height:2rem;display:flex;align-items:center;justify-content:center}
-    form{margin-top:4rem}
-    input{width:100%;padding:0.75rem;border:1px solid #ccc;border-radius:8px;text-align:center;font-size:1rem}
-    button{display:none}
-    .muted{color:#94a3b8;font-size:0.9rem;margin-top:1rem;min-height:1.2rem}
+    body{margin:0;padding:2rem;display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:100vh;text-align:center}
+    main{max-width:720px;width:100%}
+    h1{font-size:4rem;margin:0;outline:none;cursor:text}
+    h1:empty:before{content:attr(data-placeholder);color:#ccc}
+    .pronouns{font-size:1.5rem;color:#64748b;margin-top:0.5rem;min-height:2.5rem;display:flex;align-items:center;justify-content:center}
+    .muted{color:#94a3b8;font-size:0.9rem;margin-top:2rem;min-height:1.2rem}
     a{color:inherit;text-decoration:underline}
     .spinner{display:inline-block;width:1.5rem;height:1.5rem;border:3px solid #ccc;border-top-color:#0ea5a2;border-radius:50%;animation:spin 1s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
@@ -22,14 +20,10 @@
 <body>
   <main>
     <div id="output">
-      <h1 id="displayName">Pronouns</h1>
+      <h1 id="displayName" contenteditable="true" spellcheck="false" data-placeholder="Name"></h1>
       <div id="pronouns" class="pronouns"></div>
       <div id="details" class="muted"></div>
     </div>
-
-    <form id="nameForm" aria-label="Lookup form">
-      <input id="nameInput" type="text" placeholder="Enter a name" aria-label="Name" />
-    </form>
 
     <div id="status" role="status" aria-live="polite" class="muted"></div>
 
@@ -43,13 +37,6 @@
     const nameEl = document.getElementById('displayName')
     const pronounsEl = document.getElementById('pronouns')
     const detailsEl = document.getElementById('details')
-    const form = document.getElementById('nameForm')
-    const input = document.getElementById('nameInput')
-
-    const GENDERS = {
-      'Q6581072': { label: 'female', pronouns: 'she/her' },
-      'Q6581097': { label: 'male', pronouns: 'he/him' }
-    }
 
     function setStatus(text, busy=false){
       if(busy){
@@ -66,7 +53,6 @@
     }
 
     async function lookup(name){
-      nameEl.textContent = name
       pronounsEl.textContent = ''
       detailsEl.textContent = ''
       setStatus('', true)
@@ -77,6 +63,7 @@
         const sJson = await sResp.json()
         if(!sJson.search || sJson.search.length === 0){
           setStatus('No matches found')
+          pronounsEl.textContent = '?'
           return
         }
 
@@ -122,33 +109,29 @@
     }
 
     let debounceTimer
-    input.addEventListener('input', () => {
+    nameEl.addEventListener('input', () => {
       clearTimeout(debounceTimer)
       debounceTimer = setTimeout(() => {
-        const val = input.value.trim()
+        const val = nameEl.textContent.trim()
         if (val) {
           location.hash = encodeURIComponent(val)
         } else {
           history.replaceState(null, null, ' ')
+          trigger()
         }
       }, 200)
-    })
-
-    form.addEventListener('submit', e => {
-      e.preventDefault()
-      trigger()
     })
 
     async function trigger(){
       const name = getNameFromFragment()
       if(!name){
-        nameEl.textContent = 'Pronouns'
+        nameEl.textContent = ''
         pronounsEl.textContent = ''
         detailsEl.textContent = ''
         setStatus('')
         return
       }
-      input.value = name
+      if(nameEl.textContent !== name) nameEl.textContent = name
       await lookup(name)
     }
 
