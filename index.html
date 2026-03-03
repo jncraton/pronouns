@@ -1,132 +1,202 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Pronouns</title>
-  <style>
-    :root{font-family: system-ui, sans-serif; color-scheme: light dark}
-    body{margin:0;padding:2rem;display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:100vh;text-align:center}
-    main{max-width:720px;width:100%}
-    h1{font-size:4rem;margin:0;outline:none;cursor:text}
-    h1:empty:before{content:attr(data-placeholder);color:#ccc}
-    .pronouns{font-size:1.5rem;color:#64748b;margin-top:0.5rem;min-height:2.5rem;display:flex;align-items:center;justify-content:center}
-    .muted{color:#94a3b8;font-size:0.9rem;margin-top:2rem;min-height:1.2rem}
-    a{color:inherit;text-decoration:underline}
-    .spinner{display:inline-block;width:1.5rem;height:1.5rem;border:3px solid #ccc;border-top-color:#0ea5a2;border-radius:50%;animation:spin 1s linear infinite}
-    @keyframes spin{to{transform:rotate(360deg)}}
-  </style>
-</head>
-<body>
-  <main>
-    <div id="output">
-      <h1 id="displayName" contenteditable="true" spellcheck="false" data-placeholder="Name"></h1>
-      <div id="pronouns" class="pronouns"></div>
-      <div id="details" class="muted"></div>
-    </div>
-
-    <footer>
-      <p class="muted">Data from <a href="https://www.wikidata.org" target="_blank" rel="noopener">Wikidata</a></p>
-    </footer>
-  </main>
-
-  <script>
-    const nameEl = document.getElementById('displayName')
-    const pronounsEl = document.getElementById('pronouns')
-    const detailsEl = document.getElementById('details')
-
-    function setStatus(busy=false){
-      if(busy){
-        pronounsEl.innerHTML = '<span class="spinner" aria-hidden="true"></span>'
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Pronouns</title>
+    <style>
+      :root {
+        font-family: system-ui, sans-serif;
+        color-scheme: light dark;
       }
-    }
-
-    function getNameFromFragment(){
-      const frag = decodeURIComponent(location.hash.slice(1) || '').trim()
-      return frag || null
-    }
-
-    async function lookup(name){
-      pronounsEl.textContent = ''
-      detailsEl.textContent = ''
-      setStatus(true)
-
-      try{
-        const sUrl = 'https://www.wikidata.org/w/api.php?action=wbsearchentities&format=json&language=en&search=' + encodeURIComponent(name) + '&limit=10&origin=*'
-        const sResp = await fetch(sUrl)
-        const sJson = await sResp.json()
-        if(!sJson.search || sJson.search.length === 0){
-          pronounsEl.textContent = '?'
-          return
-        }
-
-        const ids = sJson.search.map(r=>r.id).join('|')
-        const gUrl = 'https://www.wikidata.org/w/api.php?action=wbgetentities&format=json&ids=' + ids + '&props=claims|labels|descriptions&origin=*'
-        const gResp = await fetch(gUrl)
-        const gJson = await gResp.json()
-
-        let foundMale = false
-        let foundFemale = false
-        let entities = []
-
-        for(const id of Object.keys(gJson.entities || {})){
-          const ent = gJson.entities[id]
-          entities.push({id, label: ent.labels && ent.labels.en && ent.labels.en.value || ent.id, desc: ent.descriptions && ent.descriptions.en && ent.descriptions.en.value})
-
-          const claims = ent.claims && ent.claims.P21
-          if(claims && claims.length){
-            const value = claims[0].mainsnak?.datavalue?.value?.id
-            if(value === 'Q6581097') foundMale = true
-            if(value === 'Q6581072') foundFemale = true
-          }
-        }
-
-        if(foundFemale && !foundMale) pronounsEl.textContent = 'she/her'
-        else if(foundMale && !foundFemale) pronounsEl.textContent = 'he/him'
-        else if(foundMale && foundFemale) pronounsEl.textContent = 'ambiguous'
-        else pronounsEl.textContent = 'unknown'
-
-        const firstEnt = entities[0]
-        if(firstEnt){
-          detailsEl.innerHTML = '<a href="https://www.wikidata.org/wiki/' + firstEnt.id + '" target="_blank" rel="noopener">' + escapeHtml(firstEnt.label) + '</a>' + (firstEnt.desc ? ' — ' + escapeHtml(firstEnt.desc) : '')
-        }
-      }catch(err){
-        console.error(err)
+      body {
+        margin: 0;
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        text-align: center;
       }
-    }
-
-    function escapeHtml(s){
-      return String(s).replace(/[&"'<>]/g, c => ({'&':'&amp;','"':'&quot;',"'":'&#39;','<':'&lt;','>':'&gt;'})[c])
-    }
-
-    let debounceTimer
-    nameEl.addEventListener('input', () => {
-      clearTimeout(debounceTimer)
-      debounceTimer = setTimeout(() => {
-        const val = nameEl.textContent.trim()
-        if (val) {
-          location.hash = encodeURIComponent(val)
-        } else {
-          history.replaceState(null, null, ' ')
-          trigger()
+      main {
+        max-width: 720px;
+        width: 100%;
+      }
+      h1 {
+        font-size: 4rem;
+        margin: 0;
+        outline: none;
+        cursor: text;
+      }
+      h1:empty:before {
+        content: attr(data-placeholder);
+        color: #ccc;
+      }
+      .pronouns {
+        font-size: 1.5rem;
+        color: #64748b;
+        margin-top: 0.5rem;
+        min-height: 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .muted {
+        color: #94a3b8;
+        font-size: 0.9rem;
+        margin-top: 2rem;
+        min-height: 1.2rem;
+      }
+      a {
+        color: inherit;
+        text-decoration: underline;
+      }
+      .spinner {
+        display: inline-block;
+        width: 1.5rem;
+        height: 1.5rem;
+        border: 3px solid #ccc;
+        border-top-color: #0ea5a2;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
         }
-      }, 200)
-    })
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div id="output">
+        <h1 id="displayName" contenteditable="true" spellcheck="false" data-placeholder="Name"></h1>
+        <div id="pronouns" class="pronouns"></div>
+        <div id="details" class="muted"></div>
+      </div>
 
-    async function trigger(){
-      const name = getNameFromFragment()
-      if(!name){
-        nameEl.textContent = ''
+      <footer>
+        <p class="muted">Data from <a href="https://www.wikidata.org" target="_blank" rel="noopener">Wikidata</a></p>
+      </footer>
+    </main>
+
+    <script>
+      const nameEl = document.getElementById('displayName')
+      const pronounsEl = document.getElementById('pronouns')
+      const detailsEl = document.getElementById('details')
+
+      function setStatus(busy = false) {
+        if (busy) {
+          pronounsEl.innerHTML = '<span class="spinner" aria-hidden="true"></span>'
+        }
+      }
+
+      function getNameFromFragment() {
+        const frag = decodeURIComponent(location.hash.slice(1) || '').trim()
+        return frag || null
+      }
+
+      async function lookup(name) {
         pronounsEl.textContent = ''
         detailsEl.textContent = ''
-        return
-      }
-      if(nameEl.textContent !== name) nameEl.textContent = name
-      await lookup(name)
-    }
+        setStatus(true)
 
-    window.addEventListener('hashchange', trigger)
-    trigger()
-  </script>
-</body>
+        try {
+          const sUrl =
+            'https://www.wikidata.org/w/api.php?action=wbsearchentities&format=json&language=en&search=' +
+            encodeURIComponent(name) +
+            '&limit=10&origin=*'
+          const sResp = await fetch(sUrl)
+          const sJson = await sResp.json()
+          if (!sJson.search || sJson.search.length === 0) {
+            pronounsEl.textContent = '?'
+            return
+          }
+
+          const ids = sJson.search.map(r => r.id).join('|')
+          const gUrl =
+            'https://www.wikidata.org/w/api.php?action=wbgetentities&format=json&ids=' +
+            ids +
+            '&props=claims|labels|descriptions&origin=*'
+          const gResp = await fetch(gUrl)
+          const gJson = await gResp.json()
+
+          let foundMale = false
+          let foundFemale = false
+          let entities = []
+
+          for (const id of Object.keys(gJson.entities || {})) {
+            const ent = gJson.entities[id]
+            entities.push({
+              id,
+              label: (ent.labels && ent.labels.en && ent.labels.en.value) || ent.id,
+              desc: ent.descriptions && ent.descriptions.en && ent.descriptions.en.value,
+            })
+
+            const claims = ent.claims && ent.claims.P21
+            if (claims && claims.length) {
+              const value = claims[0].mainsnak?.datavalue?.value?.id
+              if (value === 'Q6581097') foundMale = true
+              if (value === 'Q6581072') foundFemale = true
+            }
+          }
+
+          if (foundFemale && !foundMale) pronounsEl.textContent = 'she/her'
+          else if (foundMale && !foundFemale) pronounsEl.textContent = 'he/him'
+          else if (foundMale && foundFemale) pronounsEl.textContent = 'ambiguous'
+          else pronounsEl.textContent = 'unknown'
+
+          const firstEnt = entities[0]
+          if (firstEnt) {
+            detailsEl.innerHTML =
+              '<a href="https://www.wikidata.org/wiki/' +
+              firstEnt.id +
+              '" target="_blank" rel="noopener">' +
+              escapeHtml(firstEnt.label) +
+              '</a>' +
+              (firstEnt.desc ? ' — ' + escapeHtml(firstEnt.desc) : '')
+          }
+        } catch (err) {
+          console.error(err)
+        }
+      }
+
+      function escapeHtml(s) {
+        return String(s).replace(
+          /[&"'<>]/g,
+          c => ({ '&': '&amp;', '"': '&quot;', "'": '&#39;', '<': '&lt;', '>': '&gt;' })[c],
+        )
+      }
+
+      let debounceTimer
+      nameEl.addEventListener('input', () => {
+        clearTimeout(debounceTimer)
+        debounceTimer = setTimeout(() => {
+          const val = nameEl.textContent.trim()
+          if (val) {
+            location.hash = encodeURIComponent(val)
+          } else {
+            history.replaceState(null, null, ' ')
+            trigger()
+          }
+        }, 200)
+      })
+
+      async function trigger() {
+        const name = getNameFromFragment()
+        if (!name) {
+          nameEl.textContent = ''
+          pronounsEl.textContent = ''
+          detailsEl.textContent = ''
+          return
+        }
+        if (nameEl.textContent !== name) nameEl.textContent = name
+        await lookup(name)
+      }
+
+      window.addEventListener('hashchange', trigger)
+      trigger()
+    </script>
+  </body>
 </html>
