@@ -140,13 +140,17 @@
       return String(s).replace(/[&"'<>]/g, c => ({'&':'&amp;','"':'&quot;',"'":'&#39;','<':'&lt;','>':'&gt;'})[c])
     }
 
+    let debounceTimer
     input.addEventListener('input', () => {
-      const val = input.value.trim()
-      if (val) {
-        location.hash = encodeURIComponent(val)
-      } else {
-        history.replaceState(null, null, ' ')
-      }
+      clearTimeout(debounceTimer)
+      debounceTimer = setTimeout(() => {
+        const val = input.value.trim()
+        if (val) {
+          location.hash = encodeURIComponent(val)
+        } else {
+          history.replaceState(null, null, ' ')
+        }
+      }, 200)
     })
 
     form.addEventListener('submit', e => {
