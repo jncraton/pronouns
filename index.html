@@ -25,25 +25,19 @@
       <div id="details" class="muted"></div>
     </div>
 
-    <div id="status" role="status" aria-live="polite" class="muted"></div>
-
     <footer>
       <p class="muted">Data from <a href="https://www.wikidata.org" target="_blank" rel="noopener">Wikidata</a></p>
     </footer>
   </main>
 
   <script>
-    const statusEl = document.getElementById('status')
     const nameEl = document.getElementById('displayName')
     const pronounsEl = document.getElementById('pronouns')
     const detailsEl = document.getElementById('details')
 
-    function setStatus(text, busy=false){
+    function setStatus(busy=false){
       if(busy){
         pronounsEl.innerHTML = '<span class="spinner" aria-hidden="true"></span>'
-        statusEl.textContent = ''
-      } else {
-        statusEl.textContent = text
       }
     }
 
@@ -55,14 +49,13 @@
     async function lookup(name){
       pronounsEl.textContent = ''
       detailsEl.textContent = ''
-      setStatus('', true)
+      setStatus(true)
 
       try{
         const sUrl = 'https://www.wikidata.org/w/api.php?action=wbsearchentities&format=json&language=en&search=' + encodeURIComponent(name) + '&limit=10&origin=*'
         const sResp = await fetch(sUrl)
         const sJson = await sResp.json()
         if(!sJson.search || sJson.search.length === 0){
-          setStatus('No matches found')
           pronounsEl.textContent = '?'
           return
         }
@@ -93,14 +86,12 @@
         else if(foundMale && foundFemale) pronounsEl.textContent = 'ambiguous'
         else pronounsEl.textContent = 'unknown'
 
-        setStatus('Lookup complete')
-
         const firstEnt = entities[0]
         if(firstEnt){
           detailsEl.innerHTML = '<a href="https://www.wikidata.org/wiki/' + firstEnt.id + '" target="_blank" rel="noopener">' + escapeHtml(firstEnt.label) + '</a>' + (firstEnt.desc ? ' — ' + escapeHtml(firstEnt.desc) : '')
         }
       }catch(err){
-        setStatus('Error: ' + (err.message || String(err)))
+        console.error(err)
       }
     }
 
@@ -128,7 +119,6 @@
         nameEl.textContent = ''
         pronounsEl.textContent = ''
         detailsEl.textContent = ''
-        setStatus('')
         return
       }
       if(nameEl.textContent !== name) nameEl.textContent = name
