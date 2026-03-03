@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Pronoun Lookup (Wikidata)</title>
+  <style>
+    :root{font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; color-scheme: light dark}
+    body{margin:0;padding:2rem;display:flex;align-items:start;justify-content:center;min-height:100vh;background:#f7f7fb}
+    main{max-width:720px;width:100%;background:white;border-radius:10px;padding:1.5rem 2rem;box-shadow:0 6px 24px rgba(16,24,40,0.08)}
+    h1{margin:0 0 0.5rem;font-size:1.25rem}
+    p.lead{margin:0 0 1rem;color:#334155}
+    form{display:flex;gap:0.5rem;margin-bottom:1rem}
+    input[type=text]{flex:1;padding:0.5rem;border:1px solid #e6e9ef;border-radius:6px}
+    button{padding:0.5rem 0.75rem;border-radius:6px;border:0;background:#0ea5a2;color:white}
+    .result{padding:1rem;border-radius:8px;background:#f8fafc;border:1px solid #eef2ff}
+    .muted{color:#64748b;font-size:0.95rem}
+    a.entity{color:#0ea5a2}
+    footer{margin-top:1rem;color:#94a3b8;font-size:0.9rem}
+    .spinner{display:inline-block;width:1rem;height:1rem;border:2px solid #cbd5e1;border-top-color:#0ea5a2;border-radius:50%;animation:spin 1s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Pronoun Lookup</h1>
+    <p class="lead">Provide a name in the URL fragment (example: <code>#Ada Lovelace</code>) or type a name below. The page will query Wikidata and report likely pronouns.</p>
+
+    <form id="nameForm" aria-label="Lookup form">
+      <input id="nameInput" type="text" placeholder="Enter a name or use #fragment" aria-label="Name" />
+      <button id="go">Lookup</button>
+    </form>
+
+    <div id="status" role="status" aria-live="polite" class="muted">Idle</div>
+
+    <div id="output" class="result" hidden>
+      <div id="summary"></div>
+      <div id="details" class="muted"></div>
+    </div>
+
+    <footer>
+      Data from <a href="https://www.wikidata.org" target="_blank" rel="noopener">Wikidata</a>. This is a best-effort lookup and may be ambiguous for many names.
+    </footer>
+  </main>
+
+  <script>
+    const statusEl = document.getElementById('status')
+    const outputEl = document.getElementById('output')
+    const summaryEl = document.getElementById('summary')
+    const detailsEl = document.getElementById('details')
+    const form = document.getElementById('nameForm')
+    const input = document.getElementById('nameInput')
+
+    const GENDERS = {
+      'Q6581072': { label: 'female', pronouns: 'she/her' },
+      'Q6581097': { label: 'male', pronouns: 'he/him' }
+    }
+
+    function setStatus(text, busy=false){
+      statusEl.innerHTML = busy ? '<span class="spinner" aria-hidden="true"></span> ' + text : text
+    }
+
+    function getNameFromFragment(){
+      const frag = decodeURIComponent(location.hash.slice(1) || '').trim()
+      return frag || null
+    }
+
+    async function lookup(name){
+      outputEl.hidden = true
+      setStatus('Searching for "' + name + '"...', true)
+
+      try{
+        const sUrl = 'https://www.wikidata.org/w/api.php?action=wbsearchentities&format=json&language=en&search=' + encodeURIComponent(name) + '&limit=10&origin=*'
+        const sResp = await fetch(sUrl)
+        const sJson = await sResp.json()
+        if(!sJson.search || sJson.search.length === 0){
+          setStatus('No matches found for "' + name + '"')
+          summaryEl.textContent = 'No results'
+          detailsEl.textContent = ''
+          outputEl.hidden = false
+          return
+        }
+
+        const ids = sJson.search.map(r=>r.id).join('|')
+
+        const gUrl = 'https://www.wikidata.org/w/api.php?action=wbgetentities&format=json&ids=' + ids + '&props=claims|labels|descriptions&origin=*'
+        const gResp = await fetch(gUrl)
+        const gJson = await gResp.json()
+
+        let foundMale = false
+        let foundFemale = false
+        let entities = []
+
+        for(const id of Object.keys(gJson.entities || {})){
+          const ent = gJson.entities[id]
+          entities.push({id, label: ent.labels && ent.labels.en && ent.labels.en.value || ent.id, desc: ent.descriptions && ent.descriptions.en && ent.descriptions.en.value})
+
+          const claims = ent.claims && ent.claims.P21
+          if(claims && claims.length){
+            const first = claims[0]
+            const value = first.mainsnak && first.mainsnak.datavalue && first.mainsnak.datavalue.value && first.mainsnak.datavalue.value.id
+            if(value === 'Q6581097') foundMale = true
+            if(value === 'Q6581072') foundFemale = true
+          }
+        }
+
+        let resultText = ''
+        if(foundFemale && !foundMale){
+          resultText = 'female (she/her)'
+        } else if(foundMale && !foundFemale){
+          resultText = 'male (he/him)'
+        } else if(foundMale && foundFemale){
+          resultText = 'ambiguous (both male and female matches found)'
+        } else {
+          resultText = 'unknown (no explicit gender found)'
+        }
+
+        setStatus('Lookup complete')
+
+        // show first matching entity link
+        const firstEnt = entities[0]
+        summaryEl.innerHTML = '<strong>' + escapeHtml(name) + '</strong> → ' + escapeHtml(resultText)
+        if(firstEnt){
+          const url = 'https://www.wikidata.org/wiki/' + firstEnt.id
+          detailsEl.innerHTML = 'Top match: <a class="entity" href="' + url + '" target="_blank" rel="noopener">' + escapeHtml(firstEnt.label) + '</a>' + (firstEnt.desc ? ' — ' + escapeHtml(firstEnt.desc) : '')
+        } else {
+          detailsEl.textContent = ''
+        }
+
+        outputEl.hidden = false
+      }catch(err){
+        setStatus('Error during lookup')
+        summaryEl.textContent = 'Error'
+        detailsEl.textContent = err && err.message || String(err)
+        outputEl.hidden = false
+      }
+    }
+
+    function escapeHtml(s){
+      return String(s).replace(/[&"'<>]/g, c => ({'&':'&amp;','"':'&quot;',"'":'&#39;','<':'&lt;','>':'&gt;'})[c])
+    }
+
+    form.addEventListener('submit', e=>{
+      e.preventDefault()
+      const val = input.value.trim()
+      if(!val) return
+      location.hash = encodeURIComponent(val)
+      trigger()
+    })
+
+    async function trigger(){
+      const name = getNameFromFragment()
+      if(!name){
+        setStatus('No name provided in fragment. Type a name and press Lookup or add #name to the URL')
+        return
+      }
+      input.value = name
+      await lookup(name)
+    }
+
+    window.addEventListener('hashchange', trigger)
+
+    // run on load
+    (async ()=>{
+      const name = getNameFromFragment()
+      if(name){
+        input.value = name
+        await lookup(name)
+      } else {
+        setStatus('Ready. Add a name to the URL fragment or type one above')
+      }
+    })()
+  </script>
+</body>
+</html>
