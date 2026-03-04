@@ -423,7 +423,7 @@
             const ent = gJson.entities[id]
             const label = (ent.labels && ent.labels.en && ent.labels.en.value) || ent.id
             const desc = ent.descriptions && ent.descriptions.en && ent.descriptions.en.value
-            
+
             entities.push({ id, label, desc })
 
             const claims = ent.claims && ent.claims.P21
@@ -434,7 +434,7 @@
                 if (value === 'Q6581072') foundFemale = true
               }
             }
-            
+
             // Check if the description itself indicates gender
             if (desc) {
               const lowerDesc = desc.toLowerCase()
