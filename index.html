@@ -88,31 +88,31 @@
       const pronounsEl = document.getElementById('pronouns')
       const detailsEl = document.getElementById('details')
 
-      const PRECACHED_MALE = new Set([
-        'James', 'John', 'Robert', 'Michael', 'William', 'David', 'Richard', 'Joseph', 'Thomas', 'Charles',
-        'Christopher', 'Daniel', 'Matthew', 'Anthony', 'Mark', 'Donald', 'Steven', 'Paul', 'Andrew', 'Joshua',
-        'Kenneth', 'Kevin', 'Brian', 'George', 'Timothy', 'Ronald', 'Edward', 'Jason', 'Jeffrey', 'Gary',
-        'Ryan', 'Nicholas', 'Eric', 'Stephen', 'Jacob', 'Larry', 'Jonathan', 'Scott', 'Raymond', 'Justin',
-        'Brandon', 'Gregory', 'Samuel', 'Benjamin', 'Patrick', 'Jack', 'Alexander', 'Dennis', 'Jerry', 'Tyler',
-        'Aaron', 'Henry', 'Douglas', 'Peter', 'Jose', 'Adam', 'Zachary', 'Walter', 'Nathan', 'Harold',
-        'Kyle', 'Carl', 'Arthur', 'Gerald', 'Roger', 'Keith', 'Jeremy', 'Terry', 'Lawrence', 'Sean',
-        'Christian', 'Albert', 'Joe', 'Ethan', 'Austin', 'Jesse', 'Willie', 'Billy', 'Bryan', 'Bruce',
-        'Jordan', 'Ralph', 'Bryan', 'Billy', 'Jordan', 'Eugene', 'Wayne', 'Louis', 'Dylan', 'Alan',
-        'Juan', 'Noah', 'Russell', 'Harry', 'Randy', 'Philip', 'Vincent', 'Gabriel', 'Bobby', 'Johnny',
-      ])
+                  const PRECACHED_MALE = {
+        'James': 'Q677191', 'John': 'Q4925477', 'Robert': 'Q4927937', 'Michael': 'Q4927524', 'William': 'Q12344159', 'David': 'Q18057751', 'Richard': 'Q1249148', 'Joseph': 'Q471788', 'Thomas': 'Q16428906', 'Charles': 'Q2958359',
+        'Christopher': 'Q1084472', 'Daniel': 'Q14516546', 'Matthew': 'Q4927231', 'Anthony': 'Q12241622', 'Mark': 'Q13610143', 'Donald': 'Q13422248', 'Steven': 'Q17501985', 'Paul': 'Q4925623', 'Andrew': 'Q18042461', 'Joshua': 'Q3284319',
+        'Kenneth': 'Q2492643', 'Kevin': 'Q605834', 'Brian': 'Q15930574', 'George': 'Q15921732', 'Timothy': 'Q15885954', 'Ronald': 'Q2532287', 'Edward': 'Q278835', 'Jason': 'Q2630093', 'Jeffrey': 'Q13028078', 'Gary': 'Q1820274',
+        'Ryan': 'Q3943046', 'Nicholas': 'Q42771', 'Eric': 'Q12788459', 'Stephen': 'Q4927100', 'Jacob': 'Q25999604', 'Larry': 'Q18094568', 'Jonathan': 'Q1158394', 'Scott': 'Q2260734', 'Raymond': 'Q2127728', 'Justin': 'Q11166731',
+        'Brandon': 'Q3643673', 'Gregory': 'Q922983', 'Samuel': 'Q629347', 'Benjamin': 'Q817365', 'Patrick': 'Q18002623', 'Jack': 'Q1159009', 'Alexander': 'Q923', 'Dennis': 'Q639292', 'Jerry': 'Q3808011', 'Tyler': 'Q2462622',
+        'Aaron': 'Q905085', 'Henry': 'Q1158477', 'Peter': 'Q2793400', 'Jose': 'Q19801116', 'Adam': 'Q347181', 'Zachary': 'Q8063927', 'Walter': 'Q499249', 'Nathan': 'Q11167678', 'Harold': 'Q14647205', 'Kyle': 'Q1326816',
+        'Carl': 'Q2529610', 'Arthur': 'Q1778168', 'Gerald': 'Q2131007', 'Roger': 'Q4925304', 'Keith': 'Q1159033', 'Jeremy': 'Q1514341', 'Terry': 'Q10514602', 'Lawrence': 'Q15635788', 'Sean': 'Q19801202', 'Christian': 'Q18001597',
+        'Albert': 'Q577011', 'Joe': 'Q17862013', 'Ethan': 'Q19828980', 'Austin': 'Q16559', 'Jesse': 'Q2227398', 'Willie': 'Q18572334', 'Billy': 'Q19816507', 'Bryan': 'Q3894860', 'Bruce': 'Q579371', 'Jordan': 'Q14021944',
+        'Ralph': 'Q18156180', 'Eugene': 'Q545971', 'Wayne': 'Q1423817', 'Louis': 'Q2897866', 'Dylan': 'Q1814575', 'Alan': 'Q294833', 'Juan': 'Q475210', 'Noah': 'Q19819780', 'Russell': 'Q1158262', 'Harry': 'Q668885',
+        'Randy': 'Q1215702', 'Philip': 'Q827311', 'Vincent': 'Q4928254', 'Gabriel': 'Q4925914', 'Bobby': 'Q4564223', 'Johnny': 'Q1762022',
+      }
 
-      const PRECACHED_FEMALE = new Set([
-        'Mary', 'Patricia', 'Jennifer', 'Linda', 'Elizabeth', 'Barbara', 'Susan', 'Jessica', 'Sarah', 'Karen',
-        'Lisa', 'Nancy', 'Betty', 'Sandra', 'Margaret', 'Ashley', 'Kimberly', 'Emily', 'Donna', 'Michelle',
-        'Dorothy', 'Carol', 'Amanda', 'Melissa', 'Deborah', 'Stephanie', 'Rebecca', 'Sharon', 'Laura', 'Cynthia',
-        'Kathleen', 'Amy', 'Shirley', 'Angela', 'Helen', 'Anna', 'Brenda', 'Pamela', 'Nicole', 'Emma',
-        'Samantha', 'Katherine', 'Christine', 'Debra', 'Rachel', 'Catherine', 'Carolyn', 'Janet', 'Ruth', 'Maria',
-        'Heather', 'Diane', 'Virginia', 'Julie', 'Joyce', 'Victoria', 'Olivia', 'Kelly', 'Christina', 'Lauren',
-        'Joan', 'Evelyn', 'Judith', 'Megan', 'Cheryl', 'Andrea', 'Hannah', 'Martha', 'Jacqueline', 'Frances',
-        'Gloria', 'Ann', 'Teresa', 'Kathryn', 'Sara', 'Janice', 'Jean', 'Alice', 'Madison', 'Doris',
-        'Abigail', 'Julia', 'Judy', 'Grace', 'Denise', 'Amber', 'Marilyn', 'Beverly', 'Danielle', 'Theresa',
-        'Sophia', 'Marie', 'Diana', 'Brittany', 'Natalie', 'Isabella', 'Charlotte', 'Rose', 'Alexis', 'Kayla',
-      ])
+                  const PRECACHED_FEMALE = {
+        'Mary': 'Q734578', 'Patricia': 'Q1231089', 'Jennifer': 'Q4677161', 'Linda': 'Q1136594', 'Elizabeth': 'Q385468', 'Barbara': 'Q153957', 'Susan': 'Q14936243', 'Jessica': 'Q630846', 'Sarah': 'Q18201513', 'Karen': 'Q1221747',
+        'Lisa': 'Q1588186', 'Nancy': 'Q40898', 'Betty': 'Q2090092', 'Sandra': 'Q1474819', 'Margaret': 'Q4963612', 'Ashley': 'Q2655374', 'Kimberly': 'Q524537', 'Emily': 'Q18121477', 'Donna': 'Q1993601', 'Michelle': 'Q15621047',
+        'Dorothy': 'Q2647244', 'Carol': 'Q18201469', 'Amanda': 'Q453722', 'Melissa': 'Q830357', 'Deborah': 'Q18558974', 'Stephanie': 'Q1291472', 'Rebecca': 'Q503607', 'Sharon': 'Q2648522', 'Laura': 'Q429948', 'Cynthia': 'Q944767',
+        'Kathleen': 'Q16290387', 'Amy': 'Q481809', 'Shirley': 'Q13872259', 'Angela': 'Q4851436', 'Helen': 'Q13376892', 'Anna': 'Q666578', 'Brenda': 'Q4732148', 'Pamela': 'Q262119', 'Nicole': 'Q14753732', 'Emma': 'Q541194',
+        'Samantha': 'Q6774', 'Katherine': 'Q108631', 'Christine': 'Q2087646', 'Debra': 'Q1181618', 'Rachel': 'Q935489', 'Catherine': 'Q2218095', 'Carolyn': 'Q18091370', 'Janet': 'Q13553631', 'Ruth': 'Q18014868', 'Maria': 'Q325872',
+        'Heather': 'Q7498915', 'Diane': 'Q3026175', 'Virginia': 'Q1370', 'Julie': 'Q15725563', 'Joyce': 'Q1089094', 'Victoria': 'Q590893', 'Olivia': 'Q632264', 'Kelly': 'Q928249', 'Christina': 'Q1083457', 'Lauren': 'Q2274625',
+        'Joan': 'Q1484457', 'Evelyn': 'Q1381706', 'Judith': 'Q5954149', 'Megan': 'Q1130292', 'Cheryl': 'Q1070506', 'Andrea': 'Q493293', 'Hannah': 'Q1554377', 'Martha': 'Q16279062', 'Jacqueline': 'Q391321', 'Frances': 'Q1440778',
+        'Gloria': 'Q734575', 'Ann': 'Q558067', 'Teresa': 'Q2793617', 'Kathryn': 'Q6377001', 'Sara': 'Q833345', 'Janice': 'Q16277291', 'Jean': 'Q7521081', 'Alice': 'Q650689', 'Madison': 'Q43788', 'Doris': 'Q3094766',
+        'Abigail': 'Q2769157', 'Julia': 'Q2737173', 'Judy': 'Q15821965', 'Grace': 'Q1541047', 'Denise': 'Q1193018', 'Amber': 'Q37245484', 'Marilyn': 'Q14920707', 'Beverly': 'Q19819814', 'Danielle': 'Q18040452', 'Theresa': 'Q18192718',
+        'Sophia': 'Q2302787', 'Marie': 'Q632104', 'Diana': 'Q645412', 'Brittany': 'Q1509566', 'Natalie': 'Q180919', 'Isabella': 'Q16290308', 'Charlotte': 'Q264002', 'Rose': 'Q3585338', 'Alexis': 'Q1558167', 'Kayla': 'Q4963168',
+      }
 
       function setStatus(busy = false) {
         if (busy) {
@@ -130,18 +130,28 @@
         detailsEl.textContent = ''
 
         const trimmedName = name.split(' ')[0]
-        const isMale = PRECACHED_MALE.has(trimmedName)
-        const isFemale = PRECACHED_FEMALE.has(trimmedName)
+        const maleId = PRECACHED_MALE[trimmedName]
+        const femaleId = PRECACHED_FEMALE[trimmedName]
 
-        if (isMale && !isFemale) {
+        if (maleId && !femaleId) {
           pronounsEl.textContent = 'he/him'
-          detailsEl.textContent = 'Commonly male name'
+          detailsEl.innerHTML =
+            '<a href="https://www.wikidata.org/wiki/' +
+            maleId +
+            '" target="_blank" rel="noopener">' +
+            escapeHtml(trimmedName) +
+            '</a> — commonly male name'
           return
         }
 
-        if (isFemale && !isMale) {
+        if (femaleId && !maleId) {
           pronounsEl.textContent = 'she/her'
-          detailsEl.textContent = 'Commonly female name'
+          detailsEl.innerHTML =
+            '<a href="https://www.wikidata.org/wiki/' +
+            femaleId +
+            '" target="_blank" rel="noopener">' +
+            escapeHtml(trimmedName) +
+            '</a> — commonly female name'
           return
         }
 
