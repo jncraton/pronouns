@@ -8,6 +8,21 @@
       :root {
         font-family: system-ui, sans-serif;
         color-scheme: light dark;
+        --bg: #fff;
+        --fg: #000;
+        --muted: #64748b;
+        --dim: #94a3b8;
+        --accent: #0ea5e9;
+        --border: #ccc;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0f172a;
+          --fg: #f8fafc;
+          --muted: #94a3b8;
+          --dim: #64748b;
+          --border: #334155;
+        }
       }
       body {
         margin: 0;
@@ -18,6 +33,8 @@
         align-items: center;
         min-height: 100vh;
         text-align: center;
+        background: var(--bg);
+        color: var(--fg);
       }
       main {
         max-width: 720px;
@@ -33,11 +50,11 @@
       }
       h1:empty:before {
         content: attr(data-placeholder);
-        color: #ccc;
+        color: var(--dim);
       }
       .pronouns {
         font-size: 1.5rem;
-        color: #64748b;
+        color: var(--muted);
         margin-top: 0.5rem;
         min-height: 2.5rem;
         display: flex;
@@ -45,7 +62,7 @@
         justify-content: center;
       }
       .muted {
-        color: #94a3b8;
+        color: var(--dim);
         font-size: 0.9rem;
         margin-top: 2rem;
         min-height: 1.2rem;
@@ -58,8 +75,8 @@
         display: inline-block;
         width: 1.5rem;
         height: 1.5rem;
-        border: 3px solid #ccc;
-        border-top-color: #0ea5a2;
+        border: 3px solid var(--border);
+        border-top-color: var(--accent);
         border-radius: 50%;
         animation: spin 1s linear infinite;
       }
