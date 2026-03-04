@@ -333,13 +333,18 @@
         clearTimeout(debounceTimer)
         if (abortController) abortController.abort()
 
-        debounceTimer = setTimeout(() => {
+        debounceTimer = setTimeout(async () => {
           const val = nameEl.textContent.trim()
           if (val) {
-            location.hash = encodeURIComponent(val)
+            history.replaceState(null, null, '#' + encodeURIComponent(val))
+            if (abortController) abortController.abort()
+            abortController = new AbortController()
+            await lookup(val, abortController.signal)
           } else {
             history.replaceState(null, null, ' ')
-            trigger()
+            nameEl.textContent = ''
+            pronounsEl.textContent = ''
+            detailsEl.textContent = ''
           }
         }, 200)
       })
@@ -352,7 +357,7 @@
           detailsEl.textContent = ''
           return
         }
-        if (nameEl.textContent !== name) nameEl.textContent = name
+        nameEl.textContent = name
 
         if (abortController) abortController.abort()
         abortController = new AbortController()
@@ -469,7 +474,6 @@
         }
       }
 
-      window.addEventListener('hashchange', trigger)
       trigger()
     </script>
   </body>
