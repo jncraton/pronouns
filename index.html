@@ -386,8 +386,9 @@
         setStatus(true)
 
         try {
+          const isFullName = name.trim().includes(' ')
           const sUrl =
-            'https://www.wikidata.org/w/api.php?action=wbsearchentities&format=json&language=en&search=' +
+            'https://www.wikidata.org/w/api.php?action=wbsearchentities&format=json&language=en&type=item&search=' +
             encodeURIComponent(name) +
             '&limit=10&origin=*'
           const sResp = await fetch(sUrl, { signal })
@@ -397,7 +398,16 @@
             return
           }
 
-          const ids = sJson.search.map(r => r.id).join('|')
+          const results = isFullName
+            ? sJson.search
+            : sJson.search.filter(
+                r =>
+                  r.description?.toLowerCase().includes('given name') ||
+                  r.label?.toLowerCase().includes('(given name)'),
+              )
+
+          const entitiesToGet = (results.length > 0 ? results : sJson.search).slice(0, 5)
+          const ids = entitiesToGet.map(r => r.id).join('|')
           const gUrl =
             'https://www.wikidata.org/w/api.php?action=wbgetentities&format=json&ids=' +
             ids +
