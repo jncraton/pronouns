@@ -320,7 +320,46 @@
         return frag || null
       }
 
-      async function lookup(name) {
+      function escapeHtml(s) {
+        return String(s).replace(
+          /[&"'<>]/g,
+          c => ({ '&': '&amp;', '"': '&quot;', "'": '&#39;', '<': '&lt;', '>': '&gt;' })[c],
+        )
+      }
+
+      let debounceTimer
+      let abortController
+      nameEl.addEventListener('input', () => {
+        clearTimeout(debounceTimer)
+        if (abortController) abortController.abort()
+
+        debounceTimer = setTimeout(() => {
+          const val = nameEl.textContent.trim()
+          if (val) {
+            location.hash = encodeURIComponent(val)
+          } else {
+            history.replaceState(null, null, ' ')
+            trigger()
+          }
+        }, 200)
+      })
+
+      async function trigger() {
+        const name = getNameFromFragment()
+        if (!name) {
+          nameEl.textContent = ''
+          pronounsEl.textContent = ''
+          detailsEl.textContent = ''
+          return
+        }
+        if (nameEl.textContent !== name) nameEl.textContent = name
+
+        if (abortController) abortController.abort()
+        abortController = new AbortController()
+        await lookup(name, abortController.signal)
+      }
+
+      async function lookup(name, signal) {
         pronounsEl.textContent = ''
         detailsEl.textContent = ''
 
@@ -351,7 +390,7 @@
             'https://www.wikidata.org/w/api.php?action=wbsearchentities&format=json&language=en&search=' +
             encodeURIComponent(name) +
             '&limit=10&origin=*'
-          const sResp = await fetch(sUrl)
+          const sResp = await fetch(sUrl, { signal })
           const sJson = await sResp.json()
           if (!sJson.search || sJson.search.length === 0) {
             pronounsEl.textContent = '?'
@@ -363,7 +402,7 @@
             'https://www.wikidata.org/w/api.php?action=wbgetentities&format=json&ids=' +
             ids +
             '&props=claims|labels|descriptions&origin=*'
-          const gResp = await fetch(gUrl)
+          const gResp = await fetch(gUrl, { signal })
           const gJson = await gResp.json()
 
           let foundMale = false
@@ -402,41 +441,10 @@
               (firstEnt.desc ? ' — ' + escapeHtml(firstEnt.desc) : '')
           }
         } catch (err) {
-          console.error(err)
-        }
-      }
-
-      function escapeHtml(s) {
-        return String(s).replace(
-          /[&"'<>]/g,
-          c => ({ '&': '&amp;', '"': '&quot;', "'": '&#39;', '<': '&lt;', '>': '&gt;' })[c],
-        )
-      }
-
-      let debounceTimer
-      nameEl.addEventListener('input', () => {
-        clearTimeout(debounceTimer)
-        debounceTimer = setTimeout(() => {
-          const val = nameEl.textContent.trim()
-          if (val) {
-            location.hash = encodeURIComponent(val)
-          } else {
-            history.replaceState(null, null, ' ')
-            trigger()
+          if (err.name !== 'AbortError') {
+            console.error(err)
           }
-        }, 200)
-      })
-
-      async function trigger() {
-        const name = getNameFromFragment()
-        if (!name) {
-          nameEl.textContent = ''
-          pronounsEl.textContent = ''
-          detailsEl.textContent = ''
-          return
         }
-        if (nameEl.textContent !== name) nameEl.textContent = name
-        await lookup(name)
       }
 
       window.addEventListener('hashchange', trigger)
